@@ -33,3 +33,8 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER ?? 'mt1',
 });
+
+window.app = {
+    name: import.meta.env.VITE_APP_NAME ?? 'company name.',
+    url: import.meta.env.VITE_APP_URL ?? 'http://localhost:8000',
+}

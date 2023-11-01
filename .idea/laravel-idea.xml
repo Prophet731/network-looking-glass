@@ -3,6 +3,7 @@
   <component name="LaravelIdeaMainSettings">
     <option name="codeGeneration">
       <LaravelCodeGeneration>
+        <option name="addPhpDocs" value="true" />
         <option name="generationStringSettings">
           <map>
             <entry key="createEloquentScope:inModuleNamespace" value="Models\Scopes" />
@@ -13,7 +14,6 @@
         </option>
       </LaravelCodeGeneration>
     </option>
-    <option name="frameworkFound" value="true" />
     <option name="laravelBasePath" value="src" />
     <option name="userClassName" value="\AppModels\User" />
   </component>

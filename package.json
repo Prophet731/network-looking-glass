@@ -6,6 +6,7 @@
         "build": "vite build"
     },
     "devDependencies": {
+        "@tailwindcss/forms": "^0.5.6",
         "@vitejs/plugin-vue": "^4.4.0",
         "autoprefixer": "^10.4.16",
         "axios": "^1.1.2",
