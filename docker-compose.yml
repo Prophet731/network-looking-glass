@@ -1,0 +1,53 @@
+version: '3.9'
+
+x-common-env: &common-env
+  REDIS_HOST: "redis"
+
+networks:
+  lg:
+
+services:
+  redis:
+    image: redis:alpine
+    networks:
+      - lg
+    restart: always
+    command: redis-server
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+  websocket-server:
+    image: quay.io/soketi/soketi:1.4-16-debian
+    networks:
+      - lg
+    restart: always
+    ports:
+      - "6001:6001"
+      - "9601:9601"
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - websocket-server
+    networks:
+      - lg
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    ports:
+      - '80:8081'
+    environment: *common-env
+    image: ghcr.io/prophet731/network-looking-glass
+    volumes:
+      - ./src:/var/www:rw
