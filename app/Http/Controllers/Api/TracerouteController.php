@@ -66,7 +66,7 @@ class TracerouteController extends Controller
                     }
                 }
 
-                return collect(['raw' => $lines, ...$result]);
+                return collect($result);
             });
 
         return response()->json($results);
