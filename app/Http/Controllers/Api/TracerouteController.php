@@ -13,7 +13,7 @@ class TracerouteController extends Controller
     public function show(Request $request, $hostname)
     {
         // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
-        if (!filter_var($hostname, FILTER_VALIDATE_IP)) {
+        if (! filter_var($hostname, FILTER_VALIDATE_IP)) {
             $hostname = gethostbyname($hostname);
         }
 
@@ -26,13 +26,13 @@ class TracerouteController extends Controller
 
                 $process = new Process([
                     $trPath,
-                    $hostname
+                    $hostname,
                 ]);
 
                 $process->run();
 
                 // Executes after the command finishes
-                if (!$process->isSuccessful()) {
+                if (! $process->isSuccessful()) {
                     throw new ProcessFailedException($process);
                 }
 
@@ -53,7 +53,7 @@ class TracerouteController extends Controller
                             'times' => array_filter([
                                 $matches[4] ?? null,
                                 $matches[5] ?? null,
-                                $matches[6] ?? null
+                                $matches[6] ?? null,
                             ]),
                         ];
                         $result[] = $hop;
@@ -65,7 +65,6 @@ class TracerouteController extends Controller
 
                 return collect($result);
             });
-
 
         return response()->json($results);
     }

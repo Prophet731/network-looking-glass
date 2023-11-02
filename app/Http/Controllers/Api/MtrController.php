@@ -14,7 +14,7 @@ class MtrController extends Controller
     public function show(Request $request, string $hostname)
     {
         // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
-        if (!filter_var($hostname, FILTER_VALIDATE_IP)) {
+        if (! filter_var($hostname, FILTER_VALIDATE_IP)) {
             $hostname = gethostbyname($hostname);
         }
 
@@ -26,13 +26,13 @@ class MtrController extends Controller
                 $mtrPath,
                 '-z',
                 '-j',
-                $hostname
+                $hostname,
             ]);
 
             $process->run();
 
             // Executes after the command finishes
-            if (!$process->isSuccessful()) {
+            if (! $process->isSuccessful()) {
                 throw new ProcessFailedException($process);
             }
 

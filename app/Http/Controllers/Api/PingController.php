@@ -13,7 +13,7 @@ class PingController extends Controller
     public function show(Request $request, string $hostname, int $count = 6)
     {
         // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
-        if (!filter_var($hostname, FILTER_VALIDATE_IP)) {
+        if (! filter_var($hostname, FILTER_VALIDATE_IP)) {
             $hostname = gethostbyname($hostname);
         }
 
@@ -29,7 +29,7 @@ class PingController extends Controller
                 $process->run();
 
                 // Executes after the command finishes
-                if (!$process->isSuccessful()) {
+                if (! $process->isSuccessful()) {
                     throw new ProcessFailedException($process);
                 }
 
@@ -40,7 +40,7 @@ class PingController extends Controller
                     'target' => $hostname,
                     'ip' => null,
                     'pings' => [],
-                    'statistics' => []
+                    'statistics' => [],
                 ];
 
                 // Extracting IP Address
@@ -54,7 +54,7 @@ class PingController extends Controller
                         $ping = [
                             'sequence' => $matches[1],
                             'ttl' => $matches[2],
-                            'time' => $matches[3]
+                            'time' => $matches[3],
                         ];
                         $result['pings'][] = $ping;
                     }

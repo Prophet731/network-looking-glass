@@ -4,8 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -17,8 +15,6 @@ class UserMtrRequestEvent implements ShouldBroadcast
 
     /**
      * Create a new event instance.
-     * @param  string  $socketId
-     * @param  Collection  $results
      */
     public function __construct(public string $socketId, public Collection $results)
     {
@@ -38,7 +34,7 @@ class UserMtrRequestEvent implements ShouldBroadcast
     {
         // Get the user's socket ID from the header 'X-Socket-Id' and broadcast to that socket.
         return [
-            new Channel('mtr-request.' . $this->socketId),
+            new Channel('mtr-request.'.$this->socketId),
         ];
     }
 }
