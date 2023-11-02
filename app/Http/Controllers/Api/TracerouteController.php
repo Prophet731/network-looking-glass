@@ -43,8 +43,7 @@ class TracerouteController extends Controller
                 $result = [];
 
                 foreach ($lines as $line) {
-                    preg_match('/(\d+)\s+([\w.-]+)?\s?\(([\d.]+)\)\s+([\d.]+ ms)?\s+([\d.]+ ms)?\s+([\d.]+ ms)?/',
-                        $line, $matches);
+                    preg_match('/^(\d+)\s+(?:(\S+)\s+)?\(([\d.]+|[a-fA-F\d:]+)\)\s+(\d+\.\d+ ms|\*)\s+(\d+\.\d+ ms|\*)\s+(\d+\.\d+ ms|\*)/', $line, $matches);
                     if ($matches) {
                         $hop = [
                             'hop' => $matches[1],
