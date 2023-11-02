@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\UserMtrRequestEvent;
 use App\Http\Controllers\Controller;
+use App\Traits\NetworkHelpersTrait;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\ExecutableFinder;
@@ -11,10 +12,12 @@ use Symfony\Component\Process\Process;
 
 class MtrController extends Controller
 {
+    use NetworkHelpersTrait;
+
     public function show(Request $request, string $hostname)
     {
         // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
-        if (! filter_var($hostname, FILTER_VALIDATE_IP)) {
+        if (! $this->validateHostname($hostname)) {
             $hostname = gethostbyname($hostname);
         }
 
