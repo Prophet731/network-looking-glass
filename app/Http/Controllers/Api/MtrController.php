@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\UserMtrRequestEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -43,6 +44,11 @@ class MtrController extends Controller
 
             return $output;
         });
+
+        if (request()->hasHeader('X-Socket-Id')) {
+            $socketId = request()->header('X-Socket-Id');
+            broadcast(new UserMtrRequestEvent($socketId, $query));
+        }
 
         return response()->json($query);
     }

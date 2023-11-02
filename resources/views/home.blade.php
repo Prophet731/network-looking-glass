@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     @vite('resources/js/app.js')
 </head>
-<body>
+<body class="dark:bg-slate-900 dark:text-white">
     <div id="app" class="container mx-auto"></div>
 </body>
 </html>
