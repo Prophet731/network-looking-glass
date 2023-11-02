@@ -41,7 +41,7 @@ class TracerouteController extends Controller
                 }
 
                 $output = $process->getOutput();
-                $lines = explode("\n", trim($output));
+                $lines = array_map('trim', explode("\n", trim($output)));
                 array_shift($lines);  // Remove the first line as it's just informational
 
                 $result = [];
@@ -66,7 +66,7 @@ class TracerouteController extends Controller
                     }
                 }
 
-                return collect($result);
+                return collect(['raw' => $lines, ...$result]);
             });
 
         return response()->json($results);
