@@ -9,7 +9,7 @@ to open a pull request.
 
 # TODO
 
-- [ ] Add support for IPv6 on traceroute (semi working).
+- [X] Add support for IPv6 on traceroute (semi working).
 - [ ] Add speedtest support.
 - [ ] Add support for multiple looking glass servers.
 - [ ] Add iperf support.
