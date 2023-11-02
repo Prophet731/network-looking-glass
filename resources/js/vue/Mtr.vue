@@ -1,5 +1,6 @@
 <script setup>
 import {inject, onMounted, ref, watchEffect} from 'vue';
+import Asn from './Asn.vue';
 
 
 const props = defineProps({
@@ -92,7 +93,10 @@ onMounted(() => {
                         <tbody>
                             <tr v-for="(result, index) in results" :key="index">
                                 <td class="px-4 py-3 dark:text-white">{{ result.count }}</td>
-                                <td class="px-4 py-3 dark:text-white"><a :href="`https://iplocation.io/asn-whois-lookup/${result.ASN}`" target="_blank" class="text-blue-500" v-text="result.ASN" v-if="result.ASN !== 'AS???'"></a></td>
+                                <td class="px-4 py-3 dark:text-white">
+                                    <a :href="`https://iplocation.io/asn-whois-lookup/${result.ASN}`" target="_blank" class="text-blue-500" v-text="result.ASN" v-if="result.ASN !== 'AS???'"></a>
+                                    <asn v-if="result.ASN !== 'AS???'" :asn="parseInt(result.ASN.substring(2))"></asn>
+                                </td>
                                 <td class="px-4 py-3 dark:text-white">{{ result.host }}</td>
                                 <td class="px-4 py-3" v-bind:class="{'text-green-500': result['Loss%'] === 0, 'text-orange-500': result['Loss%'] >= 5, 'text-red-500': result['Loss%'] >= 70}">{{ result['Loss%'] }}&percnt;</td>
                                 <td class="px-4 py-3 dark:text-white">{{ result.Snt }}</td>

@@ -4,13 +4,14 @@ const defaultTheme = require('tailwindcss/defaultTheme')
 module.exports = {
     darkMode: 'class',
     plugins: [
-        // ...
         require('@tailwindcss/forms'),
+        require('flowbite/plugin'),
     ],
     content: [
         "./resources/**/*.blade.php",
         "./resources/**/*.js",
         "./resources/**/*.vue",
+        "./node_modules/flowbite/**/*.js",
     ],
     theme: {
         extend: {
@@ -19,5 +20,4 @@ module.exports = {
             },
         },
     },
-    // ...
 }

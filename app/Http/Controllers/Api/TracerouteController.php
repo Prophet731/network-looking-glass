@@ -17,7 +17,7 @@ class TracerouteController extends Controller
             $hostname = gethostbyname($hostname);
         }
 
-        $results = cache()->remember(sprintf('tr-%s', hash('xxh128', $hostname)), now()->addMinute(),
+        $results = cache()->remember(sprintf('tr-%s', hash('xxh128', $hostname)), now()->addMinutes(30),
             function () use (
                 $hostname
             ) {

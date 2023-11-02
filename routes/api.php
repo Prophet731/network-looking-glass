@@ -20,5 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('ping/{hostname}', [\App\Http\Controllers\Api\PingController::class, 'show']);
 Route::get('mtr/{hostname?}', [\App\Http\Controllers\Api\MtrController::class, 'show']);
+Route::get('asn/{asn}', \App\Http\Controllers\Api\AsnController::class);
 Route::get('traceroute/{hostname}', [\App\Http\Controllers\Api\TracerouteController::class, 'show']);
 Route::get('ip', \App\Http\Controllers\Api\IpController::class);

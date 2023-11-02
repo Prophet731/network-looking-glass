@@ -18,7 +18,7 @@ class MtrController extends Controller
             $hostname = gethostbyname($hostname);
         }
 
-        $query = cache()->remember(sprintf('mtr-%s', hash('xxh128', $hostname)), now()->addMinute(), function () use ($hostname) {
+        $query = cache()->remember(sprintf('mtr-%s', hash('xxh128', $hostname)), now()->addMinutes(30), function () use ($hostname) {
             $executableFinder = new ExecutableFinder();
             $mtrPath = $executableFinder->find('mtr');
 

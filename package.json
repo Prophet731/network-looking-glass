@@ -25,6 +25,7 @@
         "@fortawesome/vue-fontawesome": "^3.0.3",
         "@headlessui/vue": "^1.7.16",
         "@heroicons/vue": "^2.0.18",
+        "flowbite": "^2.0.0",
         "vue": "^3.3.7"
     }
 }

@@ -17,7 +17,7 @@ class PingController extends Controller
             $hostname = gethostbyname($hostname);
         }
 
-        $results = cache()->remember(sprintf('ping-%s', hash('xxh128', $hostname)), now()->addMinute(),
+        $results = cache()->remember(sprintf('ping-%s', hash('xxh128', $hostname)), now()->addMinutes(30),
             function () use (
                 $count,
                 $hostname
