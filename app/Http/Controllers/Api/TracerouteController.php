@@ -29,6 +29,7 @@ class TracerouteController extends Controller
 
                 $process = new Process([
                     $trPath,
+                    '-n',
                     $hostname,
                 ]);
 
