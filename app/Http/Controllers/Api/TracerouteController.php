@@ -5,21 +5,27 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class TracerouteController extends Controller
 {
     public function show(Request $request, $hostname)
     {
-        // Resolve the hostname to an IP address
-        $hostname = gethostbyname($hostname);
+        // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
+        if (!filter_var($hostname, FILTER_VALIDATE_IP)) {
+            $hostname = gethostbyname($hostname);
+        }
 
-        $results = cache()->remember(sprintf('tr-%s', hash('xxh128', $hostname)), now()->addMinutes(60),
+        $results = cache()->remember(sprintf('tr-%s', hash('xxh128', $hostname)), now()->addMinute(),
             function () use (
                 $hostname
             ) {
+                $executableFinder = new ExecutableFinder();
+                $trPath = $executableFinder->find('traceroute');
+
                 $process = new Process([
-                    'traceroute',
+                    $trPath,
                     $hostname
                 ]);
 

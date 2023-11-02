@@ -5,18 +5,27 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class PingController extends Controller
 {
     public function show(Request $request, string $hostname, int $count = 6)
     {
-        $results = cache()->remember(sprintf('ping-%s', hash('xxh128', $hostname)), now()->addMinutes(5),
+        // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
+        if (!filter_var($hostname, FILTER_VALIDATE_IP)) {
+            $hostname = gethostbyname($hostname);
+        }
+
+        $results = cache()->remember(sprintf('ping-%s', hash('xxh128', $hostname)), now()->addMinute(),
             function () use (
                 $count,
                 $hostname
             ) {
-                $process = new Process(['ping', '-c', $count, $hostname]);
+                $executableFinder = new ExecutableFinder();
+                $pingPath = $executableFinder->find('ping');
+
+                $process = new Process([$pingPath, '-c', $count, $hostname]);
                 $process->run();
 
                 // Executes after the command finishes

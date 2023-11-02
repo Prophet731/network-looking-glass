@@ -2,6 +2,7 @@
 import axios from 'axios';
 import {inject, onMounted, ref, watchEffect} from 'vue';
 
+
 const props = defineProps({
     hostname: {
         type: String,
@@ -17,10 +18,14 @@ const results = ref([]);
 
 const timeoutRequest = ref(null);
 
+const loading = ref(false);
+
 function getMtrResults(ip) {
     if (results.value) {
         results.value = [];
     }
+
+    loading.value = true;
 
     axios.get(`/api/mtr/${ip}`)
     .then(response => {
@@ -33,6 +38,8 @@ function getMtrResults(ip) {
                 getMtrResults(ip);
             }, 10000);
         }
+    }).finally(() => {
+        loading.value = false;
     });
 }
 
@@ -46,6 +53,12 @@ watchEffect(() => {
     }
 });
 
+onMounted(() => {
+    if (props.clientIp) {
+        getMtrResults(props.clientIp);
+    }
+});
+
 </script>
 
 <template>
@@ -54,29 +67,31 @@ watchEffect(() => {
         <div class="container flex flex-col flex-wrap items-center justify-between py-5 mx-auto md:flex-row max-w-7xl">
             <div class="flex flex-col w-full mb-12 text-left lg:text-center">
                 <h1 class="mb-6 text-2xl font-semibold tracking-tighter text-black sm:text-5xl title-font">
-                    MTR Results
+                    MTR Results <font-awesome-icon :icon="['fas', 'spinner']" spin size="2xs" class="ml-2 text-green-500" v-if="loading"></font-awesome-icon>
                 </h1>
                 <div class="flex flex-col w-full mb-12 text-left lg:text-center">
                     <table class="table-auto w-full text-left whitespace-no-wrap">
                         <thead>
                             <tr>
                                 <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100 rounded-tl rounded-bl">Hop</th>
+                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">ASN</th>
                                 <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Host</th>
-                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Loss</th>
-                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Snt</th>
+                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Packet Loss</th>
+                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Sent</th>
                                 <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Last</th>
                                 <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Avg</th>
                                 <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Best</th>
-                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Wrst</th>
-                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">StDev</th>
+                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Worst</th>
+                                <th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Std Deviation</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             <tr v-for="(result, index) in results" :key="index">
-                                <td class="px-4 py-3">{{ index+1 }}</td>
+                                <td class="px-4 py-3">{{ result.count }}</td>
+                                <td class="px-4 py-3"><a :href="`https://iplocation.io/asn-whois-lookup/${result.ASN}`" target="_blank" class="text-blue-500" v-text="result.ASN" v-if="result.ASN !== 'AS???'"></a></td>
                                 <td class="px-4 py-3">{{ result.host }}</td>
-                                <td class="px-4 py-3">{{ result['Loss%'] }}</td>
+                                <td class="px-4 py-3" v-bind:class="{'text-green-500': result['Loss%'] === 0, 'text-orange-500': result['Loss%'] >= 5, 'text-red-500': result['Loss%'] >= 70}">{{ result['Loss%'] }}&percnt;</td>
                                 <td class="px-4 py-3">{{ result.Snt }}</td>
                                 <td class="px-4 py-3">{{ result.Last }}</td>
                                 <td class="px-4 py-3">{{ result.Avg }}</td>

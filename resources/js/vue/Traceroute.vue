@@ -17,10 +17,14 @@ const results = ref([]);
 
 const timeoutRequest = ref(null);
 
+const loading = ref(false);
+
 function getTracerouteResults(ip) {
     if (results.value) {
         results.value = [];
     }
+
+    loading.value = true;
 
     axios.get(`/api/traceroute/${ip}`)
     .then(response => {
@@ -33,6 +37,8 @@ function getTracerouteResults(ip) {
                 getTracerouteResults(ip);
             }, 10000);
         }
+    }).finally(() => {
+        loading.value = false;
     });
 }
 
@@ -46,6 +52,12 @@ watchEffect(() => {
     }
 });
 
+onMounted(() => {
+    if (props.clientIp) {
+        getTracerouteResults(props.clientIp);
+    }
+});
+
 </script>
 
 <template>
@@ -54,7 +66,7 @@ watchEffect(() => {
         <div class="container flex flex-col flex-wrap items-center justify-between py-5 mx-auto md:flex-row max-w-7xl">
             <div class="flex flex-col w-full mb-12 text-left lg:text-center">
                 <h1 class="mb-6 text-2xl font-semibold tracking-tighter text-black sm:text-5xl title-font">
-                    Traceroute Results
+                    Traceroute Results <font-awesome-icon :icon="['fas', 'spinner']" spin size="2xs" class="ml-2 text-green-500" v-if="loading"></font-awesome-icon>
                 </h1>
                 <div class="flex flex-col w-full mb-12 text-left lg:text-center">
                     <table class="table-auto w-full text-left whitespace-no-wrap">
