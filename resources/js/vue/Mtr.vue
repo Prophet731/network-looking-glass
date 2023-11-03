@@ -82,13 +82,7 @@ async function createMap() {
 
     map.value.invalidateSize();
 
-    // Fix for broken image paths
-    let DefaultIcon = L.icon({
-        iconUrl: MarkerIcon,
-        shadowUrl: MarkerShadow,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-    });
+
 
     // Add markers to map
     geoCords.value.forEach((geoCord) => {
@@ -96,10 +90,17 @@ async function createMap() {
 
         // Loop through the results and find the index where the host contains the ip
         results.value.forEach((result) => {
-            console.log(geoCord)
             if (result.host.includes(geoCord.ip)) {
                 hop = result.count;
             }
+        });
+
+        // Fix for broken image paths
+        let DefaultIcon = L.icon({
+            iconUrl: MarkerIcon,
+            shadowUrl: MarkerShadow,
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
         });
 
         L.marker(geoCord.loc, {
