@@ -74,7 +74,7 @@ async function createMap() {
 
     map.value = L.map('map', {
         renderer: L.canvas()
-    }).setView(geoCords.value[0] ?? [0,0], 1);
+    }).setView(geoCords.value[0].loc ?? [0,0], 1);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; OpenStreetMap contributors',
@@ -92,14 +92,28 @@ async function createMap() {
 
     // Add markers to map
     geoCords.value.forEach((geoCord) => {
-        L.marker(geoCord, {
-            icon: DefaultIcon,
-            title: `Hop ${geoCords.value.indexOf(geoCord) + 1}`
-        }).addTo(map.value);
+        let hop = null;
+
+        // Loop through the results and find the index where the host contains the ip
+        results.value.forEach((result) => {
+            console.log(geoCord)
+            if (result.host.includes(geoCord.ip)) {
+                hop = result.count;
+            }
+        });
+
+        L.marker(geoCord.loc, {
+            icon: DefaultIcon
+        }).bindTooltip(`Hop ${hop} - IP: ${geoCord.ip}`).openTooltip().addTo(map.value);
     });
     L.control.scale().addTo(map.value);
 
-    let poly = L.polyline(geoCords.value, { color: '#0F172A' }).addTo(map.value);
+    // Return just a list of cords
+    let cords = geoCords.value.map((geoCord) => {
+        return geoCord.loc;
+    });
+
+    let poly = L.polyline(cords, { color: '#0F172A' }).addTo(map.value);
     map.value.fitBounds(poly.getBounds());
 }
 
@@ -119,7 +133,10 @@ async function getGeoCordsForIps() {
             if (!jsonResponse.hasOwnProperty('loc')) {
                 continue;
             }
-            geoCords.value.push(jsonResponse.loc.split(','));
+            geoCords.value.push({
+                ip:jsonResponse.ip,
+                loc: jsonResponse.loc.split(',').map(Number)
+            });
         } catch (error) {
             console.error(error);
         }
