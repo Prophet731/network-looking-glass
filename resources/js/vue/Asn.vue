@@ -5,7 +5,11 @@ import { initFlowbite } from 'flowbite'
 
 const props = defineProps({
     asn: {
-        type: Number,
+        type: String,
+        required: true
+    },
+    token: {
+        type: String,
         required: true
     }
 })
@@ -16,12 +20,12 @@ const timeoutRequest = ref(null);
 
 const loading = ref(false);
 
-function getAsnDetails(asn) {
+function getAsnDetails() {
     if (results.value) {
         results.value = [];
     }
 
-    axios.get(`api/asn/${asn}`)
+    axios.get(`https://ipinfo.io/${props.asn}/json?token=${props.token}`)
     .then(response => {
         results.value = response.data;
     }).catch(error => {
@@ -29,7 +33,7 @@ function getAsnDetails(asn) {
         if (error.response.status === 429) {
             // Wait 5 seconds and try again
             setTimeout(() => {
-                getAsnDetails(asn);
+                getAsnDetails();
             }, 10000);
         }
     });
@@ -37,7 +41,8 @@ function getAsnDetails(asn) {
 
 onMounted(() => {
     initFlowbite();
-    getAsnDetails(props.asn);
+    console.log(props.token)
+    getAsnDetails();
 });
 
 </script>
@@ -50,13 +55,15 @@ onMounted(() => {
     </button>
     <div data-popover v-bind:id="`asn-${props.asn}`" role="tooltip" class="absolute z-10 invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
         <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-            <h3 class="font-semibold text-gray-900 dark:text-white">{{ results?.description_short ?? 'N/A'}}</h3>
+            <h3 class="font-semibold text-gray-900 dark:text-white">{{ results?.name ?? 'N/A'}}</h3>
 
         </div>
         <div class="px-3 py-2">
-            <ul>
-                <li>Last Updated: {{ results?.date_updated ?? 'N/A'}}</li>
-            </ul>
+            <dd>
+                <dl>Allocated: {{ results.allocated }}</dl>
+                <dl>Registry: {{ results.registry }}</dl>
+                <dl>Type: {{ results.type }}</dl>
+            </dd>
         </div>
         <div data-popper-arrow></div>
     </div>
