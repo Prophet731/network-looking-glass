@@ -29,6 +29,7 @@ class MtrController extends Controller
                 $mtrPath,
                 '-z',
                 '-j',
+                '-b',
                 $hostname,
             ]);
 
@@ -43,6 +44,10 @@ class MtrController extends Controller
                 $output = collect(json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR)['report']);
             } catch (\JsonException $e) {
                 throw new \RuntimeException($e->getMessage(), 500, $e);
+            }
+
+            foreach ($output['hubs'] as $hub) {
+                $hub['ip'] = gethostbyname($hub['host']);
             }
 
             return $output;

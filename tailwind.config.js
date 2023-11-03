@@ -5,7 +5,9 @@ module.exports = {
     darkMode: 'class',
     plugins: [
         require('@tailwindcss/forms'),
-        require('flowbite/plugin'),
+        require('flowbite/plugin')({
+            charts: true,
+        }),
     ],
     content: [
         "./resources/**/*.blade.php",
