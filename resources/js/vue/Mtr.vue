@@ -4,8 +4,8 @@ import Asn from './Asn.vue';
 import { initFlowbite } from 'flowbite'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet/dist/images/marker-icon.png';
-import 'leaflet/dist/images/marker-shadow.png';
+import MarkerIcon from 'leaflet/dist/images/marker-icon.png';
+import MarkerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 const props = defineProps({
     hostname: {
@@ -82,13 +82,23 @@ async function createMap() {
 
     map.value.invalidateSize();
 
+    // Fix for broken image paths
+    let DefaultIcon = L.icon({
+        iconUrl: MarkerIcon,
+        shadowUrl: MarkerShadow,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+    });
+
     // Add markers to map
     geoCords.value.forEach((geoCord) => {
-        L.marker(geoCord).addTo(map.value);
+        L.marker(geoCord, {
+            icon: DefaultIcon
+        }).addTo(map.value);
     });
     L.control.scale().addTo(map.value);
 
-    let poly = L.polyline(geoCords.value, { color: 'blue' }).addTo(map.value);
+    let poly = L.polyline(geoCords.value, { color: '#0F172A' }).addTo(map.value);
     map.value.fitBounds(poly.getBounds());
 }
 
