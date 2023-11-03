@@ -4,6 +4,8 @@ import Asn from './Asn.vue';
 import { initFlowbite } from 'flowbite'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet/dist/images/marker-icon.png';
+import 'leaflet/dist/images/marker-shadow.png';
 
 const props = defineProps({
     hostname: {
@@ -56,17 +58,23 @@ function parseIpFromHost(host) {
     return match ? match[1] : null;
 }
 
-async function createMap() {
-    await getGeoCordsForIps();
-
+async function destroyMap() {
     if(map.value) {
         map.value = map.value.off();
         map.value = map.value.remove()
     }
 
+    return map.value;
+}
+
+async function createMap() {
+    await getGeoCordsForIps();
+
+    await destroyMap();
+
     map.value = L.map('map', {
         renderer: L.canvas()
-    }).setView(geoCords.value[0] ?? [0,0], 0);
+    }).setView(geoCords.value[0] ?? [0,0], 1);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; OpenStreetMap contributors',
