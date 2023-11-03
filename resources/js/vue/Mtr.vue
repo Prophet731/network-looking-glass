@@ -204,8 +204,8 @@ onMounted(() => {
                             <tr v-for="(result, index) in results" :key="index" v-bind:class="{'dark:bg-gray-900 dark:border-gray-700': result.count % 2 === 0, 'dark:bg-gray-700 dark:border-gray-700': result.count % 2 === 1}" class="border-b">
                                 <td class="px-4 py-3 dark:text-white">{{ result.count }}</td>
                                 <td class="px-4 py-3 dark:text-white">
-                                    <a :href="`https://iplocation.io/asn-whois-lookup/${result.ASN}`" target="_blank" class="text-blue-500" v-text="result.ASN" v-if="result.ASN !== 'AS???'"></a>
-                                    <asn v-if="result.ASN !== 'AS???'" :asn="parseInt(result.ASN.substring(2))"></asn>
+                                    <span class="text-blue-500" v-text="result.ASN" v-if="result.ASN !== 'AS???'"></span>
+<!--                                    <asn v-if="result.ASN !== 'AS???'" :asn="result.ASN" :token="accessKey"></asn>-->
                                     <span v-else>N/A</span>
                                 </td>
                                 <td class="px-4 py-3 dark:text-white">{{ result.host }}</td>
@@ -219,16 +219,23 @@ onMounted(() => {
                             </tr>
                         </tbody>
                     </table>
+
+                    <div id="alert-border-1" class="w-full mt-6 flex items-center p-4 mb-4 text-blue-800 border-t-4 border-blue-300 bg-blue-50 dark:text-blue-400 dark:bg-gray-800 dark:border-blue-800" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <div class="ml-3 text-sm font-medium">
+                            <span class="font-semibold underline">Location Accuracy Disclaimer:</span> The accuracy of location information for IP addresses may vary or appear incorrect. Obtaining precise location data relies on third-party sources and the proper identification of IP geolocations by companies involved.
+                            We use <a href="https://ipinfo.io" class="font-semibold underline hover:no-underline" target="_blank" rel="external">ipinfo.io</a> as our data provider.
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col w-full mb-12">
+                        <div id="map" class="h-screen w-screen"></div>
+                    </div>
                 </div>
             </div>
-
-            <div class="flex flex-col w-full mb-12">
-                <div id="map" class="h-screen w-screen"></div>
-            </div>
-
         </div>
-
-
     </section>
 
 </template>
