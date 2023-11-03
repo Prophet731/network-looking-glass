@@ -93,7 +93,8 @@ async function createMap() {
     // Add markers to map
     geoCords.value.forEach((geoCord) => {
         L.marker(geoCord, {
-            icon: DefaultIcon
+            icon: DefaultIcon,
+            title: `Hop ${geoCords.value.indexOf(geoCord) + 1}`
         }).addTo(map.value);
     });
     L.control.scale().addTo(map.value);
