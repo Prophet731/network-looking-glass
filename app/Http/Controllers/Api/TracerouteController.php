@@ -24,49 +24,53 @@ class TracerouteController extends Controller
             function () use (
                 $hostname
             ) {
-                $executableFinder = new ExecutableFinder();
-                $trPath = $executableFinder->find('traceroute');
+                try {
+                    $executableFinder = new ExecutableFinder();
+                    $trPath = $executableFinder->find('traceroute');
 
-                $process = new Process([
-                    $trPath,
-                    '-n',
-                    $hostname,
-                ]);
+                    $process = new Process([
+                        $trPath,
+                        '-n',
+                        $hostname,
+                    ]);
 
-                $process->run();
+                    $process->run();
 
-                // Executes after the command finishes
-                if (! $process->isSuccessful()) {
-                    throw new ProcessFailedException($process);
-                }
-
-                $output = $process->getOutput();
-                $lines = array_map('trim', explode("\n", trim($output)));
-                array_shift($lines);  // Remove the first line as it's just informational
-
-                $result = [];
-
-                foreach ($lines as $line) {
-                    preg_match('/^(\d+)\s+([\da-fA-F:.]+)\s+(\d+\.\d+ ms|\*)\s+(\d+\.\d+ ms|\*)\s+(\d+\.\d+ ms|\*)?/', $line, $matches);
-                    if ($matches) {
-                        $hop = [
-                            'hop' => $matches[1],
-                            'hostname' => $matches[2] ?: null,
-                            'ip' => $matches[3],
-                            'times' => array_filter([
-                                $matches[4] ?? null,
-                                $matches[5] ?? null,
-                                $matches[6] ?? null,
-                            ]),
-                        ];
-                        $result[] = $hop;
-                    } else {
-                        // Handle lines that do not match the expected format (e.g., lines with asterisks)
-                        $result[] = ['hop' => count($result) + 1, 'hostname' => null, 'ip' => null, 'times' => []];
+                    // Executes after the command finishes
+                    if (! $process->isSuccessful()) {
+                        throw new ProcessFailedException($process);
                     }
-                }
 
-                return collect($result);
+                    $output = $process->getOutput();
+                    $lines = array_map('trim', explode("\n", trim($output)));
+                    array_shift($lines);  // Remove the first line as it's just informational
+
+                    $result = [];
+
+                    foreach ($lines as $line) {
+                        preg_match('/^(\d+)\s+([\da-fA-F:.]+)\s+(\d+\.\d+ ms|\*)\s+(\d+\.\d+ ms|\*)\s+(\d+\.\d+ ms|\*)?/', $line, $matches);
+                        if ($matches) {
+                            $hop = [
+                                'hop' => $matches[1],
+                                'hostname' => $matches[2] ?: null,
+                                'ip' => $matches[3],
+                                'times' => array_filter([
+                                    $matches[4] ?? null,
+                                    $matches[5] ?? null,
+                                    $matches[6] ?? null,
+                                ]),
+                            ];
+                            $result[] = $hop;
+                        } else {
+                            // Handle lines that do not match the expected format (e.g., lines with asterisks)
+                            $result[] = ['hop' => count($result) + 1, 'hostname' => null, 'ip' => null, 'times' => []];
+                        }
+                    }
+
+                    return collect($result);
+                } catch (\Exception $e) {
+                    return collect([]);
+                }
             });
 
         return response()->json($results);

@@ -22,35 +22,41 @@ class MtrController extends Controller
         }
 
         $query = cache()->remember(sprintf('mtr-%s', hash('xxh128', $hostname)), now()->addMinutes(30), function () use ($hostname) {
-            $executableFinder = new ExecutableFinder();
-            $mtrPath = $executableFinder->find('mtr');
-
-            $process = new Process([
-                $mtrPath,
-                '-z',
-                '-j',
-                '-b',
-                $hostname,
-            ]);
-
-            $process->run();
-
-            // Executes after the command finishes
-            if (! $process->isSuccessful()) {
-                throw new ProcessFailedException($process);
-            }
-
             try {
-                $output = collect(json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR)['report']);
-            } catch (\JsonException $e) {
-                throw new \RuntimeException($e->getMessage(), 500, $e);
-            }
+                $executableFinder = new ExecutableFinder();
+                $mtrPath = $executableFinder->find('mtr');
 
-            foreach ($output['hubs'] as $hub) {
-                $hub['ip'] = gethostbyname($hub['host']);
-            }
+                $process = new Process([
+                    $mtrPath,
+                    '-z',
+                    '-j',
+                    '-b',
+                    $hostname,
+                ]);
 
-            return $output;
+                $process->run();
+
+                // Executes after the command finishes
+                if (! $process->isSuccessful()) {
+                    throw new ProcessFailedException($process);
+                }
+
+                try {
+                    $output = collect(json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR)['report']);
+                } catch (\JsonException $e) {
+                    throw new \RuntimeException($e->getMessage(), 500, $e);
+                }
+
+                foreach ($output['hubs'] as $hub) {
+                    $hub['ip'] = gethostbyname($hub['host']);
+                }
+
+                return $output;
+            } catch (\Throwable $e) {
+                return [
+                    'error' => $e->getMessage(),
+                ];
+            }
         });
 
         if (request()->hasHeader('X-Socket-Id')) {
