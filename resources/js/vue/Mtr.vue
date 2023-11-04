@@ -74,7 +74,7 @@ async function createMap() {
 
     map.value = L.map('map', {
         renderer: L.canvas()
-    }).setView(geoCords.value[0].loc ?? [0,0], 1);
+    }).setView(geoCords.value[0]?.loc ?? [0,0], 1);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; OpenStreetMap contributors',
@@ -82,30 +82,30 @@ async function createMap() {
 
     map.value.invalidateSize();
 
-
-
     // Add markers to map
     geoCords.value.forEach((geoCord) => {
-        let hop = null;
+        try {
+            let hop = null;
 
-        // Loop through the results and find the index where the host contains the ip
-        results.value.forEach((result) => {
-            if (result.host.includes(geoCord.ip)) {
-                hop = result.count;
-            }
-        });
+            // Loop through the results and find the index where the host contains the ip
+            results.value.forEach((result) => {
+                if (result.host.includes(geoCord.ip)) {
+                    hop = result.count;
+                }
+            });
 
-        // Fix for broken image paths
-        let DefaultIcon = L.icon({
-            iconUrl: MarkerIcon,
-            shadowUrl: MarkerShadow,
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-        });
+            // Fix for broken image paths
+            let DefaultIcon = L.icon({
+                iconUrl: MarkerIcon,
+                shadowUrl: MarkerShadow,
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            });
 
-        L.marker(geoCord.loc, {
-            icon: DefaultIcon
-        }).bindTooltip(`Hop ${hop} - IP: ${geoCord.ip}`).openTooltip().addTo(map.value);
+            L.marker(geoCord.loc, {
+                icon: DefaultIcon
+            }).bindTooltip(`Hop ${hop} - IP: ${geoCord.ip}`).openTooltip().addTo(map.value);
+        } catch (error) {}
     });
     L.control.scale().addTo(map.value);
 
@@ -152,7 +152,7 @@ watchEffect(() => {
         clearTimeout(timeoutRequest.value);
         timeoutRequest.value = setTimeout(() => {
             getMtrResults(props.hostname);
-        }, 1000);
+        }, 1500);
     }
 });
 
