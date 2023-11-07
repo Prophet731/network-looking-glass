@@ -6,6 +6,7 @@ import Mtr from '../Mtr.vue';
 import Traceroute from '../Traceroute.vue';
 import Ping from '../Ping.vue';
 import { initFlowbite } from 'flowbite'
+import AsnTool from '../AsnTool.vue';
 
 const title = ref(app.name);
 const app_url = ref(app.url);
@@ -87,6 +88,7 @@ onMounted(() => {
                 <option>MTR</option>
                 <option>Traceroute</option>
                 <option>Ping</option>
+                <option>ASN</option>
             </select>
         </div>
         <ul class="hidden text-sm font-medium text-center text-gray-500 divide-x divide-gray-200 rounded-lg sm:flex dark:divide-gray-600 dark:text-gray-400" id="fullWidthTab" data-tabs-toggle="#fullWidthTabContent" role="tablist">
@@ -99,6 +101,9 @@ onMounted(() => {
             <li class="w-full">
                 <button id="ping-tab" data-tabs-target="#ping" type="button" role="tab" aria-controls="faq" aria-selected="false" class="inline-block w-full p-4 rounded-tr-lg bg-gray-50 hover:bg-gray-100 focus:outline-none dark:bg-gray-700 dark:hover:bg-gray-600">Ping</button>
             </li>
+            <li class="w-full">
+                <button id="asn-tab" data-tabs-target="#asn" type="button" role="tab" aria-controls="faq" aria-selected="false" class="inline-block w-full p-4 rounded-tr-lg bg-gray-50 hover:bg-gray-100 focus:outline-none dark:bg-gray-700 dark:hover:bg-gray-600">ASN</button>
+            </li>
         </ul>
         <div id="fullWidthTabContent" class="border-t border-gray-200 dark:border-gray-600">
             <div class="hidden p-4 bg-white rounded-lg md:p-8 dark:bg-slate-900" id="mtr" role="tabpanel" aria-labelledby="mtr-tab">
@@ -109,6 +114,10 @@ onMounted(() => {
             </div>
             <div class="hidden p-4 bg-white rounded-lg dark:bg-slate-900" id="ping" role="tabpanel" aria-labelledby="ping-tab">
                 <ping v-if="clientIp" :client-ip="clientIp" :hostname="hostname"></ping>
+            </div>
+
+            <div class="hidden p-4 bg-white rounded-lg dark:bg-slate-900" id="asn" role="tabpanel" aria-labelledby="asn-tab">
+                <asn-tool></asn-tool>
             </div>
         </div>
     </div>

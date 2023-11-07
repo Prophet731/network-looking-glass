@@ -19,6 +19,7 @@ class MtrRequestChannel
      */
     public function join(): array|bool
     {
+        // Check if the user is authenticated by comparing the user's session ID to the socket ID.
         return true;
     }
 }

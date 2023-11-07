@@ -1,7 +1,6 @@
 <script setup>
-import {inject, onMounted, ref, watchEffect} from 'vue';
-import Asn from './Asn.vue';
-import { initFlowbite } from 'flowbite'
+import {onMounted, ref, watchEffect} from 'vue';
+import {initFlowbite} from 'flowbite';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MarkerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -20,6 +19,7 @@ const props = defineProps({
 
 const results = ref([]);
 const geoCords = ref([]);
+const wsdata = ref(null);
 
 const timeoutRequest = ref(null);
 const map = ref(null);
@@ -37,8 +37,7 @@ function getMtrResults(ip) {
 
     window.axios.get(`/api/mtr/${ip}`)
     .then(response => {
-        results.value = response.data.hubs;
-        createMap();
+        // console.log(response.data);
     }).catch(error => {
         // If we get a 429 error, it means we've hit the rate limit and we need to throttle our requests
         if (error.response.status === 429) {
@@ -47,8 +46,6 @@ function getMtrResults(ip) {
                 getMtrResults(ip);
             }, 10000);
         }
-    }).finally(() => {
-        loading.value = false;
     });
 }
 
@@ -63,8 +60,6 @@ async function destroyMap() {
         map.value = map.value.off();
         map.value = map.value.remove()
     }
-
-    return map.value;
 }
 
 async function createMap() {
@@ -157,14 +152,31 @@ watchEffect(() => {
 });
 
 onMounted(() => {
+
     initFlowbite();
-    window.Echo.connector.pusher.connection.bind('connected', function () {
-        getMtrResults(props.clientIp);
-        Echo.channel(`mtr-request.${Echo.socketId()}`)
-        .listen('UserMtrRequestEvent', (e) => {
-            console.log(e);
-        });
+
+    Echo.channel('mtr')
+    .listen('MtrEvent', (data) => {
+        try {
+            if (data.socket_id !== window.Echo.socketId()) {
+                return;
+            }
+
+            if (data?.hubs === null) {
+                return;
+            }
+
+            results.value = data.hubs;
+            if (results.value) {
+                loading.value = false;
+                createMap();
+            }
+        } catch (error) {
+            console.error(error);
+        }
     });
+
+
 });
 
 </script>
@@ -174,6 +186,9 @@ onMounted(() => {
     <section class="relative w-full px-8 text-gray-700 bg-white body-font dark:bg-slate-900">
         <div class="container flex flex-col flex-wrap items-center justify-between py-5 mx-auto md:flex-row max-w-7xl">
             <div class="flex flex-col w-full mb-12 text-left lg:text-center">
+                <!-- Clear wsdata button -->
+                <button class="px-4 py-2 mb-4 text-sm font-medium text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600" @click="getMtrResults('1.1.1.1')">Test Cloudflare</button>
+
                 <div role="status" class="max-w-2xl animate-pulse" v-if="loading">
                     <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-40 mb-4"></div>
                     <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5"></div>
@@ -183,7 +198,7 @@ onMounted(() => {
                     <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px]"></div>
                     <span class="sr-only">Loading...</span>
                 </div>
-                <div class="flex flex-col w-full mb-12 text-left lg:text-center" v-else>
+                <div class="flex flex-col w-full mb-12 text-left lg:text-center" v-if="!loading && results.length > 0">
                     <table class="table-auto w-full text-left whitespace-no-wrap">
                         <thead>
                             <tr>

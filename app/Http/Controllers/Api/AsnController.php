@@ -3,26 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Http;
+use App\Jobs\Asn\IpLookup;
 
 class AsnController extends Controller
 {
-    public function __invoke(int $asn)
+    public function __invoke(string $asn)
     {
-        try {
-            $data = cache()->remember(sprintf('asn-%d', $asn), now()->addMinutes(30), function () use ($asn) {
-                $response = Http::get(sprintf('https://api.bgpview.io/asn/%d', $asn));
-                $response->throw();
+        $socketId = request()->header('X-Socket-Id');
 
-                return collect($response->json()['data']);
-            });
+        IpLookup::dispatch($asn, $socketId);
 
-            return response()->json($data);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ]);
-        }
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'ASN request in progress.',
+            'socket_id' => $socketId,
+        ]);
     }
 }

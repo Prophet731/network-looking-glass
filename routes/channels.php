@@ -17,6 +17,10 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-Broadcast::channel(
-    'mtr-request.{socketId}',
-    \App\Broadcasting\MtrRequestChannel::class);
+Broadcast::channel('user.{socketId}', function ($user, $socketId) {
+    return true;
+});
+
+Broadcast::channel('asn', function ($user, $socketId) {
+    return true;
+});

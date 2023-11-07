@@ -29,9 +29,12 @@ services:
         networks:
             - lg
         restart: always
+        environment:
+            SOKETI_METRICS_SERVER_PORT: '9601'
+            SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESSAGES: 'true'
         ports:
-            - "6001:6001"
-            - "9601:9601"
+            - '${SOKETI_PORT:-6001}:6001'
+            - '${SOKETI_METRICS_SERVER_PORT:-9601}:9601'
     app:
         build:
             context: .
@@ -51,6 +54,7 @@ services:
         ports:
             - '80:8081'
             - '5173:5173'
+            - '49200:49200'
         environment: *common-env
         image: ghcr.io/prophet731/network-looking-glass
         volumes:

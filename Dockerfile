@@ -34,9 +34,12 @@ RUN apt-get -qq update  \
     && docker-php-ext-install pdo_mysql mysqli sockets bcmath pcntl opcache \
     && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && wget -O /etc/ssl/certs/ca-certificates.crt --no-check-certificate https://curl.se/ca/cacert.pem \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && apt-get autoremove \
-    && apt-get clean
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN apt-get install -y whois bind9-host mtr-tiny jq ipcalc grepcidr nmap ncat aha \
+     && curl "https://raw.githubusercontent.com/nitefood/asn/master/asn" > /usr/bin/asn && chmod 0755 /usr/bin/asn \
+     && apt-get autoremove -y \
+     && apt-get clean
 
 # Copy nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
@@ -61,6 +64,6 @@ WORKDIR /var/www
 #    && npm install --quiet \
 #    && npm run build
 
-HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 CMD curl --fail http://localhost:8081 || exit 1
+HEALTHCHECK --interval=5s --timeout=3s --start-period=2s --retries=3 CMD curl --fail http://localhost:8081 || exit 1
 
 CMD ["/bin/bash", "/entrypoint.sh"]
