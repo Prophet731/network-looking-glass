@@ -21,6 +21,8 @@ Broadcast::channel('user.{socketId}', function ($user, $socketId) {
     return true;
 });
 
+Broadcast::channel('mtr', \App\Broadcasting\MtrRequestChannel::class);
+
 Broadcast::channel('asn', function ($user, $socketId) {
     return true;
 });

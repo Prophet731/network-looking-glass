@@ -1,5 +1,6 @@
 <script setup>
 import {inject, onMounted, ref, watchEffect} from 'vue';
+import Toastify from 'toastify-js';
 
 const props = defineProps({
     hostname: {
@@ -28,6 +29,19 @@ function getTracerouteResults(ip) {
     window.axios.get(`/api/traceroute/${ip}`)
     .then(response => {
         results.value = response.data;
+        Toastify({
+            text: "Traceroute results updated successfully",
+            duration: 3000,
+            newWindow: true,
+            close: true,
+            gravity: "bottom",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
     }).catch(error => {
         // If we get a 429 error, it means we've hit the rate limit and we need to throttle our requests
         if (error.response.status === 429) {

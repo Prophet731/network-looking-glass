@@ -16,7 +16,7 @@ class MtrController extends Controller
 
         return response()->json([
             'status' => 'ok',
-            'message' => 'MTR request in progress.',
+            'message' => 'MTR request has been queued. Please wait for the results.',
             'socket_id' => $socketId,
         ]);
     }

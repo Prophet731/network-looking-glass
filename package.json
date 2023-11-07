@@ -28,6 +28,8 @@
         "apexcharts": "^3.44.0",
         "flowbite": "^2.0.0",
         "leaflet": "^1.9.4",
+        "leaflet.markercluster": "^1.5.3",
+        "toastify-js": "^1.12.0",
         "vue": "^3.3.7"
     }
 }

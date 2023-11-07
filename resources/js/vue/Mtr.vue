@@ -3,8 +3,13 @@ import {onMounted, ref, watchEffect} from 'vue';
 import {initFlowbite} from 'flowbite';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/leaflet.markercluster.js';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import MarkerIcon from 'leaflet/dist/images/marker-icon.png';
 import MarkerShadow from 'leaflet/dist/images/marker-shadow.png';
+import Toastify from 'toastify-js'
+import "toastify-js/src/toastify.css"
 
 const props = defineProps({
     hostname: {
@@ -19,7 +24,6 @@ const props = defineProps({
 
 const results = ref([]);
 const geoCords = ref([]);
-const wsdata = ref(null);
 
 const timeoutRequest = ref(null);
 const map = ref(null);
@@ -37,11 +41,37 @@ function getMtrResults(ip) {
 
     window.axios.get(`/api/mtr/${ip}`)
     .then(response => {
-        // console.log(response.data);
+        Toastify({
+            text: response.data['message'],
+            duration: 3000,
+            newWindow: true,
+            close: true,
+            gravity: "bottom",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
     }).catch(error => {
         // If we get a 429 error, it means we've hit the rate limit and we need to throttle our requests
         if (error.response.status === 429) {
-            // Wait 5 seconds and try again
+            // Wait 10 seconds and try again
+            Toastify({
+                text: 'Rate limit exceeded. Waiting 10 seconds and trying again.',
+                duration: 3000,
+                newWindow: true,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: "red",
+                },
+                onClick: function(){} // Callback after click
+            }).showToast();
+
             setTimeout(() => {
                 getMtrResults(ip);
             }, 10000);
@@ -50,9 +80,13 @@ function getMtrResults(ip) {
 }
 
 function parseIpFromHost(host) {
-    const regex = /(?:.*\s)?((?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}:(?:[0-9a-fA-F]{1,4}:){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:[0-9a-fA-F]{1,4}:){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}:(?:[0-9a-fA-F]{1,4}:){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}:(?:[0-9a-fA-F]{1,4}:){1,5}|[0-9a-fA-F]{1,4}:((?::[0-9a-fA-F]{1,4}){1,6})|:(?::[0-9a-fA-F]{1,4}){1,7}|:|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}((25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9])\.){3,3}(25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9])\.){3,3}(25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9]))(?:\s.*)?/;
-    const match = host.match(regex);
-    return match ? match[1] : null;
+    try {
+        const regex = /(?:.*\s)?((?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}:(?:[0-9a-fA-F]{1,4}:){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:[0-9a-fA-F]{1,4}:){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}:(?:[0-9a-fA-F]{1,4}:){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}:(?:[0-9a-fA-F]{1,4}:){1,5}|[0-9a-fA-F]{1,4}:((?::[0-9a-fA-F]{1,4}){1,6})|:(?::[0-9a-fA-F]{1,4}){1,7}|:|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}((25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9])\.){3,3}(25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9])\.){3,3}(25[0-5]|(?:2[0-4]|1{0,1}[0-9])?[0-9]))(?:\s.*)?/;
+        const match = host.match(regex);
+        return match ? match[1] : null;
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 async function destroyMap() {
@@ -78,6 +112,9 @@ async function createMap() {
     map.value.invalidateSize();
 
     // Add markers to map
+    let markers = L.markerClusterGroup();
+
+    // Add markers to map
     geoCords.value.forEach((geoCord) => {
         try {
             let hop = null;
@@ -97,11 +134,15 @@ async function createMap() {
                 iconAnchor: [12, 41]
             });
 
-            L.marker(geoCord.loc, {
+            let marker = L.marker(geoCord.loc, {
                 icon: DefaultIcon
-            }).bindTooltip(`Hop ${hop} - IP: ${geoCord.ip}`).openTooltip().addTo(map.value);
+            }).bindTooltip(`Hop ${hop} - IP: ${geoCord.ip}`).openTooltip();
+
+            markers.addLayer(marker);
         } catch (error) {}
     });
+
+    map.value.addLayer(markers);
     L.control.scale().addTo(map.value);
 
     // Return just a list of cords
@@ -110,6 +151,7 @@ async function createMap() {
     });
 
     let poly = L.polyline(cords, { color: '#0F172A' }).addTo(map.value);
+
     map.value.fitBounds(poly.getBounds());
 }
 
@@ -119,10 +161,12 @@ async function getGeoCordsForIps() {
     // Loop through the results and get the geo cords for each IP. We'll use this to draw the map.
     for (let x in results.value) {
         try {
-            let host = parseIpFromHost(results.value[x].host);
-            if (host === null) {
+            if (results.value[x].host === null || results.value[x].host === undefined || results.value[x].host === '???') {
                 continue;
             }
+
+            let host = parseIpFromHost(results.value[x].host);
+
             let request = await fetch(`https://ipinfo.io/${host}/json?token=${accessKey.value}`)
             let jsonResponse = await request.json()
             // Check if jsonResponse has key "loc"
@@ -155,10 +199,39 @@ onMounted(() => {
 
     initFlowbite();
 
+    if (props.clientIp) {
+        window.Echo.connector.pusher.connection.bind('connected', function () {
+            getMtrResults(props.clientIp);
+        });
+    }
+
     Echo.channel('mtr')
     .listen('MtrEvent', (data) => {
         try {
             if (data.socket_id !== window.Echo.socketId()) {
+                console.log('Not for me')
+                return;
+            }
+
+            if (data.hasOwnProperty('error')) {
+                console.error(data);
+
+                Toastify({
+                    text: data['error'],
+                    duration: 3000,
+                    newWindow: true,
+                    close: true,
+                    gravity: "bottom",
+                    position: "right",
+                    stopOnFocus: true,
+                    style: {
+                        // Set gradient background to red
+                        background: "linear-gradient(to right, #FF0000, #96c93d)",
+                    },
+                    onClick: function(){} // Callback after click
+                }).showToast();
+
+                loading.value = false;
                 return;
             }
 
@@ -186,9 +259,6 @@ onMounted(() => {
     <section class="relative w-full px-8 text-gray-700 bg-white body-font dark:bg-slate-900">
         <div class="container flex flex-col flex-wrap items-center justify-between py-5 mx-auto md:flex-row max-w-7xl">
             <div class="flex flex-col w-full mb-12 text-left lg:text-center">
-                <!-- Clear wsdata button -->
-                <button class="px-4 py-2 mb-4 text-sm font-medium text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600" @click="getMtrResults('1.1.1.1')">Test Cloudflare</button>
-
                 <div role="status" class="max-w-2xl animate-pulse" v-if="loading">
                     <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-40 mb-4"></div>
                     <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5"></div>

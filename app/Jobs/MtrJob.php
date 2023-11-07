@@ -37,7 +37,7 @@ class MtrJob implements ShouldQueue
         }
 
         try {
-            $results = Cache::remember(sprintf('mtr_%s', hash('xxh64', $this->hostname)), now()->addMinutes(30), function () {
+            $results = Cache::remember(sprintf('mtr_%s', hash('xxh64', trim($this->hostname))), now()->addMinutes(30), function () {
                 $executableFinder = new ExecutableFinder();
                 $path = $executableFinder->find('mtr');
 
@@ -48,8 +48,6 @@ class MtrJob implements ShouldQueue
                     '-j',
                     $this->hostname,
                 ]);
-
-                $process->setPty(true);
 
                 $process->run();
 
@@ -64,8 +62,10 @@ class MtrJob implements ShouldQueue
                 $output = collect(json_decode($output, true, 512, JSON_THROW_ON_ERROR)['report']);
 
                 // Add the IP address to each hub.
-                foreach ($output['hubs'] as $hub) {
-                    $hub['ip'] = gethostbyname($hub['host']);
+                foreach ($output['hubs'] ?? [] as $hub) {
+                    if (array_key_exists('host', $hub)) {
+                        $hub['ip'] = gethostbyname($hub['host']);
+                    }
                 }
 
                 return $output;
@@ -73,8 +73,13 @@ class MtrJob implements ShouldQueue
 
             broadcast(new MtrEvent($results, $this->socketId));
         } catch (\Throwable $e) {
+            // Clear the cache if the MTR command fails.
+            Cache::forget(sprintf('mtr_%s', hash('xxh64', trim($this->hostname))));
+
             broadcast(new MtrEvent(collect([
+                'message' => 'We were unable to run the MTR command. Please try again.',
                 'error' => $e->getMessage(),
+                'trace' => $e->getTrace(),
             ]), $this->socketId));
         }
     }
