@@ -21,7 +21,9 @@ Broadcast::channel('user.{socketId}', function ($user, $socketId) {
     return true;
 });
 
-Broadcast::channel('mtr', \App\Broadcasting\MtrRequestChannel::class);
+Broadcast::channel('mtr', \App\Broadcasting\MtrChannel::class);
+Broadcast::channel('ping', \App\Broadcasting\PingChannel::class);
+Broadcast::channel('traceroute', \App\Broadcasting\TracerouteChannel::class);
 
 Broadcast::channel('asn', function ($user, $socketId) {
     return true;

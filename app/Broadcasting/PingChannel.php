@@ -4,7 +4,7 @@ namespace App\Broadcasting;
 
 use App\Models\User;
 
-class MtrRequestChannel
+class PingChannel
 {
     /**
      * Create a new channel instance.
@@ -19,7 +19,6 @@ class MtrRequestChannel
      */
     public function join(): array|bool
     {
-        // Check if the user is authenticated by comparing the user's session ID to the socket ID.
         return true;
     }
 }

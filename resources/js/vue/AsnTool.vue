@@ -1,13 +1,56 @@
 <script setup>
-import {onMounted, ref} from 'vue'
+import {onMounted, ref, watchEffect} from 'vue';
+import Toastify from 'toastify-js';
 
-const lookup = ref('8.8.8.8')
+const props = defineProps({
+    hostname: {
+        type: String,
+        default: null
+    },
+    clientIp: {
+        type: String,
+        default: null
+    }
+})
 
 const output = ref('')
 
-async function getAsn() {
-    await fetch(`http://lg.local/asn/${lookup.value}`)
-        .then(response => response.text())
+const timeoutRequest = ref(null);
+
+const loading = ref(false);
+
+const requestError = ref(false);
+
+async function getAsn(ip) {
+    if (output.value !== '') {
+        output.value = '';
+    }
+
+    Toastify({
+        text: 'Looking up ASN. Please wait...',
+        duration: 3000,
+        newWindow: true,
+        close: true,
+        gravity: "bottom",
+        position: "right",
+        stopOnFocus: true,
+        style: {
+            background: "linear-gradient(to right, #00b09b, #96c93d)",
+        },
+        onClick: function(){} // Callback after click
+    }).showToast();
+
+    loading.value = true;
+
+    await fetch(`/asn/${ip}`)
+        .then(response => {
+            // Check if the response is ok
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return response.text()
+        })
         .then(data => {
             // Get the contents within the <pre> tag from the response and set it to the output
             const parser = new DOMParser()
@@ -16,52 +59,93 @@ async function getAsn() {
             data = pre.innerHTML
 
             output.value = data
+
+            Toastify({
+                text: 'ASN lookup complete.',
+                duration: 3000,
+                newWindow: true,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)",
+                },
+                onClick: function(){} // Callback after click
+            }).showToast();
+
+            requestError.value = false;
+            loading.value = false;
         })
         .catch(error => {
-            console.error(error)
+            requestError.value = true;
+            loading.value = false;
+            Toastify({
+                text: `ASN Lookup Error: ${error.message}`,
+                duration: 3000,
+                newWindow: true,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: "red",
+                },
+                onClick: function(){} // Callback after click
+            }).showToast();
         })
 }
 
+watchEffect(() => {
+    if (props.hostname) {
+        // Wait until user stops typing
+        clearTimeout(timeoutRequest.value);
+        timeoutRequest.value = setTimeout(() => {
+            getAsn(props.hostname);
+        }, 5000);
+    }
+});
+
 onMounted(() => {
-    console.log('mounted')
-
-    Echo.channel('asn')
-    .listen('IpLookup', (data) => {
-        try {
-            if (data.socket_id !== window.Echo.socketId()) {
-                return
-            }
-
-            console.log(data)
-        } catch (error) {
-            console.error(error)
-        }
-    })
+    if (props.clientIp) {
+        getAsn(props.clientIp);
+    }
 })
 
 </script>
 
 <template>
-  <div>
-      <p>Targeting: {{ lookup }}</p>
-      <div class="col-span-full">
-          <div class="mt-2">
-              <div class="relative">
-                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                      </svg>
-                  </div>
-                  <input v-model="lookup" type="search" id="search" class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search" required>
-                  <button v-on:click="getAsn" type="button" class="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
-              </div>
-          </div>
-      </div>
 
-      <div class="w-full h-screen overflow-y-scroll overflow-y-auto" id="output">
-          <pre v-html="output"></pre>
-      </div>
-  </div>
+    <section class="relative w-full px-8 text-gray-700 bg-white body-font dark:bg-slate-900">
+        <div class="container flex flex-col flex-wrap items-center justify-between py-5 mx-auto md:flex-row max-w-7xl">
+            <div class="flex flex-col w-full mb-12 text-left lg:text-center">
+                <div role="status" class="max-w-2xl animate-pulse" v-if="loading">
+                    <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-40 mb-4"></div>
+                    <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5"></div>
+                    <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
+                    <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[330px] mb-2.5"></div>
+                    <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[300px] mb-2.5"></div>
+                    <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px]"></div>
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <div class="flex flex-col w-full mb-12 text-left" v-else>
+                    <!-- Alert if there is an error -->
+                    <div class="lg:text-center flex items-center p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert" v-if="requestError">
+                        <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div>
+                            <span class="font-medium">Error!</span> There was an error with your request. Please try again.
+                        </div>
+                    </div>
+                    <div class="w-full h-screen overflow-y-auto" id="output">
+                        <pre v-html="output"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </template>
 
 <style scoped>

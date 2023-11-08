@@ -89,17 +89,13 @@ function parseIpFromHost(host) {
     }
 }
 
-async function destroyMap() {
+async function createMap() {
+    await getGeoCordsForIps();
+
     if(map.value) {
         map.value = map.value.off();
         map.value = map.value.remove()
     }
-}
-
-async function createMap() {
-    await getGeoCordsForIps();
-
-    await destroyMap();
 
     map.value = L.map('map', {
         renderer: L.canvas()
@@ -152,7 +148,10 @@ async function createMap() {
 
     let poly = L.polyline(cords, { color: '#0F172A' }).addTo(map.value);
 
-    map.value.fitBounds(poly.getBounds());
+    try {
+        map.value.fitBounds(poly.getBounds());
+    } catch (error) {}
+
 }
 
 async function getGeoCordsForIps() {
@@ -191,7 +190,7 @@ watchEffect(() => {
         clearTimeout(timeoutRequest.value);
         timeoutRequest.value = setTimeout(() => {
             getMtrResults(props.hostname);
-        }, 1500);
+        }, 5000);
     }
 });
 

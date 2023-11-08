@@ -117,7 +117,7 @@ onMounted(() => {
             </div>
 
             <div class="hidden p-4 bg-white rounded-lg dark:bg-slate-900" id="asn" role="tabpanel" aria-labelledby="asn-tab">
-                <asn-tool></asn-tool>
+                <asn-tool v-if="clientIp" :client-ip="clientIp" :hostname="hostname"></asn-tool>
             </div>
         </div>
     </div>

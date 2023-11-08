@@ -28,9 +28,8 @@ function getTracerouteResults(ip) {
 
     window.axios.get(`/api/traceroute/${ip}`)
     .then(response => {
-        results.value = response.data;
         Toastify({
-            text: "Traceroute results updated successfully",
+            text: response.data['message'],
             duration: 3000,
             newWindow: true,
             close: true,
@@ -45,13 +44,25 @@ function getTracerouteResults(ip) {
     }).catch(error => {
         // If we get a 429 error, it means we've hit the rate limit and we need to throttle our requests
         if (error.response.status === 429) {
-            // Wait 5 seconds and try again
+            // Wait 10 seconds and try again
+            Toastify({
+                text: 'Rate limit exceeded. Waiting 10 seconds and trying again.',
+                duration: 3000,
+                newWindow: true,
+                close: true,
+                gravity: "bottom",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: "red",
+                },
+                onClick: function(){} // Callback after click
+            }).showToast();
+
             setTimeout(() => {
                 getTracerouteResults(ip);
             }, 10000);
         }
-    }).finally(() => {
-        loading.value = false;
     });
 }
 
@@ -61,7 +72,7 @@ watchEffect(() => {
         clearTimeout(timeoutRequest.value);
         timeoutRequest.value = setTimeout(() => {
             getTracerouteResults(props.hostname);
-        }, 1000);
+        }, 5000);
     }
 });
 
@@ -71,6 +82,46 @@ onMounted(() => {
             getTracerouteResults(props.clientIp);
         });
     }
+
+    Echo.channel('traceroute')
+    .listen('TracerouteEvent', (data) => {
+        try {
+            if (data.socket_id !== window.Echo.socketId()) {
+                console.log('Not for me')
+                return;
+            }
+
+            if (data.hasOwnProperty('error')) {
+                console.error(data);
+
+                Toastify({
+                    text: data['error'],
+                    duration: 3000,
+                    newWindow: true,
+                    close: true,
+                    gravity: "bottom",
+                    position: "right",
+                    stopOnFocus: true,
+                    style: {
+                        // Set gradient background to red
+                        background: "linear-gradient(to right, #FF0000, #96c93d)",
+                    },
+                    onClick: function(){} // Callback after click
+                }).showToast();
+
+                loading.value = false;
+                return;
+            }
+
+            results.value = data.data;
+
+            if (results.value) {
+                loading.value = false;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    });
 });
 
 </script>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\PingJob;
 use App\Traits\NetworkHelpersTrait;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -11,86 +12,17 @@ use Symfony\Component\Process\Process;
 
 class PingController extends Controller
 {
-    use NetworkHelpersTrait;
-
-    public function show(Request $request, string $hostname, int $count = 6)
+    public function show(Request $request, string $hostname): \Illuminate\Http\JsonResponse
     {
-        // Check if the hostname is an IP address, if so, do nothing, otherwise resolve it.
-        if (! $this->validateHostname($hostname)) {
-            $hostname = gethostbyname($hostname);
-        }
+        $socketId = request()->header('X-Socket-Id');
 
-        $results = cache()->remember(sprintf('ping-%s', hash('xxh128', $hostname)), now()->addMinutes(30),
-            function () use (
-                $count,
-                $hostname
-            ) {
-                try {
-                    $executableFinder = new ExecutableFinder();
-                    $pingPath = $executableFinder->find('ping');
+        // Push the job to the queue
+        PingJob::dispatch($hostname, $socketId, $request->get('ttl', 30), $request->get('count', 10));
 
-                    $process = new Process([$pingPath, '-c', $count, $hostname]);
-                    $process->run();
-
-                    // Executes after the command finishes
-                    if (! $process->isSuccessful()) {
-                        throw new ProcessFailedException($process);
-                    }
-
-                    $output = $process->getOutput();
-                    $lines = explode("\n", trim($output));
-
-                    $result = [
-                        'target' => $hostname,
-                        'ip' => null,
-                        'pings' => [],
-                        'statistics' => [],
-                    ];
-
-                    // Extracting IP Address
-                    if (preg_match('/\(([\d.]+)\)/', $lines[0], $matches)) {
-                        $result['ip'] = $matches[1];
-                    }
-
-                    // Parsing ping data
-                    foreach (array_slice($lines, 1, $count) as $line) {
-                        if (preg_match('/icmp_seq=(\d+)\s+ttl=(\d+)\s+time=([\d.]+ ms)/', $line, $matches)) {
-                            $ping = [
-                                'sequence' => $matches[1],
-                                'ttl' => $matches[2],
-                                'time' => $matches[3],
-                            ];
-                            $result['pings'][] = $ping;
-                        }
-                    }
-
-                    // Parsing statistics
-                    if (preg_match('/(\d+) packets transmitted, (\d+) received, ([\d.]+)% packet loss/', $lines[$count + 3], $matches)) {
-                        $result['statistics']['transmitted'] = $matches[1];
-                        $result['statistics']['received'] = $matches[2];
-                        $result['statistics']['packet_loss'] = $matches[3];
-                    }
-                    if (preg_match('/rtt min\/avg\/max\/mdev = ([\d.]+\/[\d.]+\/[\d.]+\/[\d.]+ ms)/', $lines[$count + 4], $matches)) {
-                        $rtt = explode('/', $matches[1]);
-                        $result['statistics']['rtt'] = [
-                            'min' => $rtt[0],
-                            'avg' => $rtt[1],
-                            'max' => $rtt[2],
-                            'mdev' => $rtt[3],
-                        ];
-                    }
-
-                    return collect($result);
-                } catch (\Exception $e) {
-                    return collect([
-                        'target' => $hostname,
-                        'ip' => null,
-                        'pings' => [],
-                        'statistics' => [],
-                    ]);
-                }
-            });
-
-        return response()->json($results);
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Ping request has been queued. Please wait for the results.',
+            'socket_id' => $socketId,
+        ]);
     }
 }
