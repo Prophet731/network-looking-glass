@@ -29,12 +29,19 @@ services:
         networks:
             - lg
         restart: always
+#        volumes:
+#            -   source: ./docker/certs
+#                target: /certs
+#                type: bind
         environment:
             SOKETI_METRICS_SERVER_PORT: '9601'
             SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESSAGES: 'true'
-#        ports:
-#            - '${SOKETI_PORT:-6001}:6001'
-#            - '${SOKETI_METRICS_SERVER_PORT:-9601}:9601'
+            SOKETI_DB_REDIS_HOST: 'redis'
+#            SOKETI_SSL_CERT: '/certs/tls.crt'
+#            SOKETI_SSL_KEY: '/certs/tls.key'
+    #        ports:
+    #            - '${SOKETI_PORT:-6001}:6001'
+    #            - '${SOKETI_METRICS_SERVER_PORT:-9601}:9601'
     app:
         build:
             context: .
@@ -53,10 +60,16 @@ services:
                 window: 120s
         ports:
             - '80:8081'
+            - '443:8443'
             - '5173:5173'
             - '49200:49200'
-            - '6001:6001'
+            - '6002:6002'
         environment: *common-env
         image: ghcr.io/prophet731/network-looking-glass
         volumes:
-            - ./:/var/www:rw
+            - source: ./
+              target: /var/www/
+              type: bind
+            - source: ./docker/certs
+              target: /certs
+              type: bind
