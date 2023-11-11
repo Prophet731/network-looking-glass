@@ -16,7 +16,6 @@ RUN apt-get -qq update  \
     bash \
     curl \
     git \
-    nginx \
     supervisor \
     nano \
     wget \
@@ -40,9 +39,6 @@ RUN apt-get install -y whois bind9-host mtr-tiny jq ipcalc grepcidr nmap ncat ah
      && curl "https://raw.githubusercontent.com/nitefood/asn/master/asn" > /usr/bin/asn && chmod 0755 /usr/bin/asn \
      && apt-get autoremove -y \
      && apt-get clean
-
-# Copy nginx config
-COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 # Copy PHP-FPM config
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
